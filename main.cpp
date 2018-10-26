@@ -1,12 +1,14 @@
 #include<iostream>
 #include<vector>
 #include<stack>
+#include<ctime>
 using namespace std;
 
 int K=4;
 int M=8;
 int N=4;
 int maxp=0;
+int tik=0;
 void display(int **arr);
 int  find(int **arr,int posx,int posy,int point);
 vector<int> reset(int **arr);
@@ -15,6 +17,7 @@ void K1(int **arr);
 int **clone(int **oarr);
 //void KN(int **arr,int n,int ip);
 void KN();
+void KN_y();
 class StepMap
 {
 public:
@@ -43,16 +46,31 @@ int main(int argc, char const *argv[])
     {
         for(int j=0;j<N;++j)
         {
-            cin>>arr[i][j];
+//            int n=rand()%K+1;
+//            arr[i][j]=n;
+                cin>>arr[i][j];
         }
     }
-
+    int **tarr=clone(arr);
+    maxp=0;
     stackmap.push(StepMap(0,arr,number));
+    clock_t start_time = clock();
     KN();
-    cout<<maxp<<endl;
+    cout<<"time: "<<clock()-start_time<<endl;
+    cout<<tik<<endl;
+
+    cout<<" @@@"<<maxp<<endl;
+
+    stackmap.push(StepMap(0,tarr,number));
+    start_time = clock();
+    maxp=0;
+    KN_y();
+    cout<<"time: "<<clock()-start_time<<endl;
+    cout<<tik<<endl;
+
+    cout<<" ***"<<maxp<<endl;
 
 
-    delete[] arr;
     return 0;
 }
 
@@ -89,10 +107,10 @@ vector<int> reset(int **arr)
                 temp.push_back(j);
             }
         }
-        
+
     }
     return temp;
-    
+
 }
 int find(int **arr,int posx,int posy,int point)
 {
@@ -103,7 +121,7 @@ int find(int **arr,int posx,int posy,int point)
     {
         return 0;
     }
-     
+
     int upNum=1;
     for(int i=1;i<=4;++i)
     {
@@ -166,7 +184,7 @@ int find(int **arr,int posx,int posy,int point)
         {
             arr[posx][posy+i]=0;
         }
-        
+
         leftNum=leftNum+rightNum-1;
         rightNum=1;
     }
@@ -200,7 +218,7 @@ int find(int **arr,int posx,int posy,int point)
 
 
     return points;
-    
+
 
 }
 
@@ -411,6 +429,7 @@ int **clone(int **oarr)
 // }
 void KN()
 {
+    tik=0;
     while(!stackmap.empty())
     {
         int lp=0;
@@ -420,10 +439,12 @@ void KN()
         int num=stackmap.top().num;
         int **arr=stackmap.top().map;
         int totalp=stackmap.top().point;
+        stackmap.pop();
         if(num==0)
         {
-            break;
+            continue;
         }
+        tik++;
         for(int i=0;i<M;++i)
         {
             for(int j=0;j<N-1;++j)
@@ -445,7 +466,6 @@ void KN()
                         maxp=totalp+lp+rp;
                     }
                 }
-                //delete[] copyarr;
                 swap(arr,i,j,i,j+1);
             }
         }
@@ -471,13 +491,126 @@ void KN()
                         maxp=totalp+up+dp;
                     }
                 }
-                //delete[] copyarr;
                 swap(arr,i,j,i+1,j);
             }
         }
-        stackmap.pop();
+        delete[] arr;
     }
-    
 
+}
+
+string getString(int **arr,int n)
+{
+    string s="";
+    for(int i=0;i<M;++i)
+    {
+        for(int j=0;j<N;++j)
+        {
+            if(arr[i][j]==0)
+            {
+                s+='0';
+            }
+            else
+            {
+                s+='1';
+            }
+        }
+    }
+    return s+to_string(n);
+
+}
+
+bool check(string s,vector<string> &vs)
+{
+    bool isHave= false;
+    for(int i=0;i<vs.size();++i)
+    {
+        if(vs.at(i)==s)
+        {
+            isHave= true;
+            break;
+        }
+    }
+    return isHave;
+}
+
+void KN_y()
+{
+    tik=0;
+    vector<string> mapVec;
+    while(!stackmap.empty())
+    {
+        int lp=0;
+        int rp=0;
+        int up=0;
+        int dp=0;
+        int num=stackmap.top().num;
+        int **arr=stackmap.top().map;
+        int totalp=stackmap.top().point;
+        stackmap.pop();
+        if(num==0)
+        {
+            continue;
+        }
+        string temp=getString(arr,num);
+        if(!check(temp,mapVec))
+        {
+            mapVec.push_back(temp);
+        } else
+        {
+            continue;
+        }
+        tik++;
+        for(int i=0;i<M;++i)
+        {
+            for(int j=0;j<N-1;++j)
+            {
+                if(arr[i][j]==0||arr[i][j+1]==0)
+                {
+                    continue;
+                }
+                swap(arr,i,j,i,j+1);
+                int **copyarr=clone(arr);
+                swap(arr,i,j,i,j+1);
+                lp=find(copyarr,i,j,0);
+                rp=find(copyarr,i,j+1,0);
+                if(lp+rp>0)
+                {
+                    stackmap.push(StepMap(totalp+lp+rp,copyarr,num-1));
+                    if(maxp<totalp+lp+rp)
+                    {
+                        display(copyarr);
+                        maxp=totalp+lp+rp;
+                    }
+                }
+            }
+        }
+
+        for(int i=0;i<M-1;++i)
+        {
+            for(int j=0;j<N;++j)
+            {
+                if(arr[i][j]==0||arr[i+1][j]==0)
+                {
+                    continue;
+                }
+                swap(arr,i,j,i+1,j);
+                int **copyarr=clone(arr);
+                swap(arr,i,j,i+1,j);
+                up=find(copyarr,i,j,0);
+                dp=find(copyarr,i+1,j,0);
+                if(up+dp>0)
+                {
+                    stackmap.push(StepMap(totalp+up+dp,copyarr,num-1));
+                    if(maxp<totalp+up+dp)
+                    {
+                        display(copyarr);
+                        maxp=totalp+up+dp;
+                    }
+                }
+            }
+        }
+        delete[] arr;
+    }
 
 }
